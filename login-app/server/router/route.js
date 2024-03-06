@@ -1,11 +1,19 @@
 import  { Router } from "express";
 
+
+//import all Controllers
+import * as controller from "../controllers/appControllers.js"
+
+
+
+
+
 const router = Router();
 
 
 //POST Method
-router.route('/register').post((req, res) =>res.json('register route'));
-router.route('/registerMail').post();
+router.route('/register').post(controller.register);
+//router.route('/registerMail').post();
 router.route('/authenticate').post();
 router.route('/login').post();
 
