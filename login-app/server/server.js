@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import connect from './database/conn.js';
-
+import router from './router/route.js';
 
 const app = express();
 
@@ -22,6 +22,13 @@ const port = 8080;
 app.get('/', (req, res) => {
   res.status(201).json("Home GET  Request");
 });
+
+
+
+//API's ROUTE
+app.use('/api', router)
+
+
 
 
 connect().then(() => {
