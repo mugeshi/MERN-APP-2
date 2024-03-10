@@ -2,22 +2,23 @@ import UserModel from '../model/User.model.js'
 import bcrypt from 'bcrypt'
 
 
-/** POST: http://localhost:8080/api/register 
+/** 
+ * Handle user registration
+ * POST: http://localhost:8080/api/register 
  * @param : {
-  "username" : "example123",
-  "password" : "admin123",
-  "email": "example@gmail.com",
-  "firstName" : "bill",
-  "lastName": "william",
-  "mobile": 8009860560,
-  "address" : "Apt. 556, Kulas Light, Gwenborough",
-  "profile": ""
-}
-*/
-
- const existUsername = new Promise((resolve, reject) => {
-      // Look for a user with the given username in the database
-      UserModel.findOne({ username }, function (err, user) {
+ *   "username" : "example123",
+ *   "password" : "admin123",
+ *   "email": "example@gmail.com",
+ *   "firstName" : "bill",
+ *   "lastName": "william",
+ *   "mobile": 8009860560,
+ *   "address" : "Apt. 556, Kulas Light, Gwenborough",
+ *   "profile": ""
+ * }
+ */
+const existUsername = new Promise((resolve, reject) => {
+    // Look for a user with the given username in the database
+    UserModel.findOne({ username }, function (err, user) {
         // If there's an error, reject the promise with an error
         if (err) reject(new Error(err));
         
@@ -26,40 +27,46 @@ import bcrypt from 'bcrypt'
 
         // If everything is okay, resolve the promise
         resolve();
-      });
     });
+});
 
-   Promise.all(existUsername, existEmail)
-       .then(() => {
-           if(password){
-              bcrypt.hash(password, 10)
-              .then( hashedPassword => {
-                
-                const user = new UserModel({
-                    username,
-                    password: hashedPassword,
-                    profile: profile || '',
-                    email
+// Assuming existEmail is defined somewhere in your code
+const existEmail = new Promise((resolve, reject) => {
+    // Implement the logic to check if the email exists
+    // ...
 
+    resolve();  // Resolve for now, you need to implement the actual logic
+});
+
+// Use Promise.all to wait for both promises to complete
+Promise.all([existUsername, existEmail])
+    .then(() => {
+        // If a password is provided, hash it
+        if (password) {
+            bcrypt.hash(password, 10)
+                .then(hashedPassword => {
+                    const user = new UserModel({
+                        username,
+                        password: hashedPassword,
+                        profile: profile || '',
+                        email,
+                    });
+
+                    // Save the user to the database
+                    user.save()
+                        .then(result => res.status(201).send({ msg: "User Registered Successfully" }))
+                        .catch(error => res.status(500).send(error));
                 })
-
-                //return save result as a  response
-                user.save()
-                 .then(result => res.status(201).send({msg:"User Register Successfully"}))
-                 .catch(error => res.status(500).send(error))
-
-              }).catch(error =>{
-                 return res.status(500).send({
-                    error: "Enable to hashed password"
-
-
-              })
-           }
-       }).catch(error =>{
-        return res.status(500).send({error})
-       })
-
-
+                .catch(error => {
+                    res.status(500).send({
+                        error: "Unable to hash password",
+                    });
+                });
+        }
+    })
+    .catch(error => {
+        res.status(500).send({ error });
+    });
 
 
 /** POST: http://localhost:8080/api/login 
