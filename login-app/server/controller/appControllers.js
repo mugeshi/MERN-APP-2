@@ -1,3 +1,6 @@
+import UserModel from '../model/User.model.js'
+import bcrypt from 'bcrypt'
+
 
 /** POST: http://localhost:8080/api/register 
  * @param : {
@@ -12,10 +15,49 @@
 }
 */
 
-export async function register(req, res){
-    res.json('register route');
-}
+ const existUsername = new Promise((resolve, reject) => {
+      // Look for a user with the given username in the database
+      UserModel.findOne({ username }, function (err, user) {
+        // If there's an error, reject the promise with an error
+        if (err) reject(new Error(err));
+        
+        // If a user is found, reject the promise with an error message
+        if (user) reject({ error: "Please use a unique username" });
 
+        // If everything is okay, resolve the promise
+        resolve();
+      });
+    });
+
+   Promise.all(existUsername, existEmail)
+       .then(() => {
+           if(password){
+              bcrypt.hash(password, 10)
+              .then( hashedPassword => {
+                
+                const user = new UserModel({
+                    username,
+                    password: hashedPassword,
+                    profile: profile || '',
+                    email
+
+                })
+
+                //return save result as a  response
+                user.save()
+                 .then(result => res.status(201).send({msg:"User Register Successfully"}))
+                 .catch(error => res.status(500).send(error))
+
+              }).catch(error =>{
+                 return res.status(500).send({
+                    error: "Enable to hashed password"
+
+
+              })
+           }
+       }).catch(error =>{
+        return res.status(500).send({error})
+       })
 
 
 
