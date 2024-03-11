@@ -69,6 +69,7 @@ Promise.all([existUsername, existEmail])
     });
 
 
+
 /** POST: http://localhost:8080/api/login 
  * @param: {
   "username" : "example123",
