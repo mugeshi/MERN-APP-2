@@ -1,28 +1,29 @@
 //In this is providing the schema or model  mongodb document
 
+// In this file, you are providing the schema or model for a MongoDB document
+
 import mongoose from "mongoose";
 
 export const UserSchema = new mongoose.Schema({
   username: {
-    type: String,  // Use uppercase "S" for String
+    type: String,
     required: [true, "Please provide a unique username"],
     unique: [true, "Username already exists"],
   },
-  password : {
+  password: {
     type: String,
     required: [true, "Please provide a password"],
     unique: true,
   },
-  email:{
+  email: {
     type: String,
-    required: [true, "please provide a unique email"]
+    required: [true, "Please provide a unique email"],
   },
-  firstName: {type: String},
-  lastName: {type: String},
-  mobile: {type: Number},
-  address: {type: String},
-  profile: {type: String}
-  
+  firstName: { type: String },
+  lastName: { type: String },
+  mobile: { type: Number },
+  address: { type: String },
+  profile: { type: String },
 });
 
-export default mongoose.model.Users || mongoose('User', UserSchema);
+export default mongoose.model('User', UserSchema);

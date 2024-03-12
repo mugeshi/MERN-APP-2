@@ -119,13 +119,6 @@ export async function verifyOTP(req, res){
 
 
 
-// successfully redirect user when OTP is valid
-/** GET: http://localhost:8080/api/createResetSession */
-export async function  createResetSession(req, res){
-    res.json(' createResetSession route');
-}
-
-
 //Reset Password
 // update the password when we have valid session
 /** PUT: http://localhost:8080/api/resetPassword */
