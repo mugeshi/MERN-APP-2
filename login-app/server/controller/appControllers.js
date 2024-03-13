@@ -1,6 +1,23 @@
-import UserModel from '../model/User.model.js'
-import bcrypt from 'bcrypt'
+import UserModel from '../model/User.model.js';  // Import the User model from the specified file
+import bcrypt from 'bcrypt';  // Import bcrypt for password hashing
 
+/** 
+ * Middleware for verifying user existence
+ */
+export async function verifyUser(req, res, next){
+    try {
+        // Extract the username from the request based on the HTTP method
+        const { username } = req.method == "GET" ? req.query : req.body;
+
+        // Check if the user exists in the database
+        let exist = await UserModel.findOne({ username });
+        if(!exist) return res.status(404).send({ error : "Can't find User!"});  // If user not found, send 404 error
+        next();  // Call the next middleware function
+
+    } catch (error) {
+        return res.status(404).send({ error: "Authentication Error"});  // If any error occurs, send authentication error
+    }
+}
 
 /** 
  * Handle user registration
@@ -16,58 +33,66 @@ import bcrypt from 'bcrypt'
  *   "profile": ""
  * }
  */
-const existUsername = new Promise((resolve, reject) => {
-    // Look for a user with the given username in the database
-    UserModel.findOne({ username }, function (err, user) {
-        // If there's an error, reject the promise with an error
-        if (err) reject(new Error(err));
-        
-        // If a user is found, reject the promise with an error message
-        if (user) reject({ error: "Please use a unique username" });
+export async function register(req,res){
 
-        // If everything is okay, resolve the promise
-        resolve();
-    });
-});
+    try {
+        const { username, password, profile, email } = req.body;  // Destructure request body to extract user details        
 
-// Assuming existEmail is defined somewhere in your code
-const existEmail = new Promise((resolve, reject) => {
-    // Implement the logic to check if the email exists
-    // ...
+        // Check if the username already exists in the database
+        const existUsername = new Promise((resolve, reject) => {
+            UserModel.findOne({ username }, function(err, user){
+                if(err) reject(new Error(err))  // If error occurs, reject the promise with the error
+                if(user) reject({ error : "Please use unique username"});  // If username already exists, reject the promise
 
-    resolve();  // Resolve for now, you need to implement the actual logic
-});
+                resolve();  // Resolve the promise if username is unique
+            })
+        });
 
-// Use Promise.all to wait for both promises to complete
-Promise.all([existUsername, existEmail])
-    .then(() => {
-        // If a password is provided, hash it
-        if (password) {
-            bcrypt.hash(password, 10)
-                .then(hashedPassword => {
-                    const user = new UserModel({
-                        username,
-                        password: hashedPassword,
-                        profile: profile || '',
-                        email,
-                    });
+        // Check if the email already exists in the database
+        const existEmail = new Promise((resolve, reject) => {
+            UserModel.findOne({ email }, function(err, email){
+                if(err) reject(new Error(err))  // If error occurs, reject the promise with the error
+                if(email) reject({ error : "Please use unique Email"});  // If email already exists, reject the promise
 
-                    // Save the user to the database
-                    user.save()
-                        .then(result => res.status(201).send({ msg: "User Registered Successfully" }))
-                        .catch(error => res.status(500).send(error));
-                })
-                .catch(error => {
-                    res.status(500).send({
-                        error: "Unable to hash password",
-                    });
-                });
-        }
-    })
-    .catch(error => {
-        res.status(500).send({ error });
-    });
+                resolve();  // Resolve the promise if email is unique
+            })
+        });
 
+        // Use Promise.all to wait for both promises to complete
+        Promise.all([existUsername, existEmail])
+            .then(() => {
+                if(password){
+                    // Hash the password using bcrypt
+                    bcrypt.hash(password, 10)
+                        .then( hashedPassword => {
+                            
+                            const user = new UserModel({
+                                username,
+                                password: hashedPassword,
+                                profile: profile || '',
+                                email
+                            });
+
+                            // Save the user to the database
+                            user.save()
+                                .then(result => res.status(201).send({ msg: "User Register Successfully"}))  // Send success message if user is registered successfully
+                                .catch(error => res.status(500).send({error}))  // Send error if unable to save user
+
+                        }).catch(error => {
+                            return res.status(500).send({
+                                error : "Enable to hashed password"  // Send error if unable to hash password
+                            })
+                        })
+                }
+            }).catch(error => {
+                return res.status(500).send({ error })  // Send error if any error occurs during user registration
+            })
+
+
+    } catch (error) {
+        return res.status(500).send(error);  // Send internal server error if any exception occurs
+    }
+}
 
 
 /** POST: http://localhost:8080/api/login 
