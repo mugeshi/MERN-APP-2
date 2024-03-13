@@ -1,5 +1,6 @@
-import UserModel from '../model/User.model.js';  // Import the User model from the specified file
+import UserModel from '../model/User.model.js';  
 import bcrypt from 'bcrypt';  // Import bcrypt for password hashing
+import { jwt } from 'jsonwebtoken';
 
 /** 
  * Middleware for verifying user existence
@@ -102,7 +103,37 @@ export async function register(req,res){
 }
 */
 export async function login(req, res){
-    res.json('login route');
+    
+    const {username , password} =req.body
+
+    try {
+
+        UserModel.findOne({ username });
+          .then(user =>{
+            bcrypt.compare(password)
+            .then(passwordCheck)=>{
+                if(!passwordCheck)return res.status(400).send({error: "Don't have password" })
+                  
+                //create jwt token
+                jwt.sign({
+                    userId: user_id,
+                })
+                      
+            }  
+
+
+            .catch(error = >{
+                return res.status(400).send({error: "password does not match" })
+            })
+          })
+          .catch( error => {
+            return res.status(404).send({error: "Username not found"});
+          })
+        
+    } catch (error) {
+        return res.status(500).send({ error });
+        
+    }
 }
 
 

@@ -2,12 +2,12 @@ import { Router } from "express";
 const router = Router();
 
 /** import all controllers */
-import * as controller from '../controller/appControllers.js';
+import * as controller from '../controllers/appControllers.js';
 
 /** POST Methods */
-router.route('/register').post(controller.register); // register user
-router.route('/authenticate').post(controller.verifyUser, (req, res) => res.end()); // authenticate user
-router.route('/login').post(controller.verifyUser, controller.login); // login in app
+router.route('/register').post(controller.register); 
+router.route('/authenticate').post(controller.verifyUser, (req, res) => res.end());
+router.route('/login').post(controller.verifyUser, controller.login); 
 
 /** GET Methods */
 router.route('/user/:username').get(controller.getUser); // user with username
